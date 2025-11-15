@@ -1,0 +1,1689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBC - Kaun Banega Crorepati</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #7e22ce 100%);
+            min-height: 100vh;
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .header {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .admin-panel h2 {
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .upload-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .upload-section h3 {
+            color: #ffd700;
+            margin-bottom: 15px;
+        }
+
+        .file-upload {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            border: 3px dashed #ffd700;
+        }
+
+        .file-upload:hover {
+            background: #f0f0f0;
+            transform: scale(1.02);
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .file-upload-label {
+            color: #333;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+
+        .btn-primary {
+            background: #ffd700;
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #ffed4e;
+            transform: scale(1.05);
+        }
+
+        .btn-success {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .settings-panel {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .settings-panel label {
+            display: block;
+            margin: 10px 0 5px 0;
+        }
+
+        .settings-panel input {
+            width: 100%;
+            padding: 8px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .music-upload {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .music-upload h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .music-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .music-item label {
+            display: block;
+            margin-bottom: 5px;
+            color: #ffd700;
+        }
+
+        .music-item input[type="file"] {
+            width: 100%;
+            padding: 5px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .music-status {
+            display: inline-block;
+            margin-left: 10px;
+            padding: 2px 8px;
+            background: #10b981;
+            border-radius: 3px;
+            font-size: 0.8em;
+        }
+
+        .status-display {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 5px;
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+        }
+
+        .prize-money {
+            font-size: 2em;
+            color: #ffd700;
+            font-weight: bold;
+        }
+
+        .timer {
+            font-size: 3em;
+            color: #ff6b6b;
+            font-weight: bold;
+            min-width: 100px;
+            text-align: center;
+        }
+
+        .timer.warning {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .lifelines {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .lifeline {
+            background: rgba(255, 215, 0, 0.2);
+            border: 2px solid #ffd700;
+            padding: 10px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+
+        .lifeline:hover:not(.used) {
+            background: rgba(255, 215, 0, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .lifeline.used {
+            opacity: 0.3;
+            cursor: not-allowed;
+            background: rgba(128, 128, 128, 0.2);
+        }
+
+        .question-container {
+            background: rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 20px;
+            min-height: 150px;
+        }
+
+        .question {
+            font-size: 1.5em;
+            margin-bottom: 30px;
+            text-align: center;
+            line-height: 1.6;
+        }
+
+        .options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .option {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid #ffd700;
+            padding: 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1.1em;
+        }
+
+        .option:hover:not(.disabled):not(.selected) {
+            background: rgba(255, 215, 0, 0.3);
+            transform: translateX(10px);
+        }
+
+        .option.selected {
+            background: #ffd700;
+            color: #000;
+            font-weight: bold;
+            animation: glow 1s infinite;
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px #ffd700; }
+            50% { box-shadow: 0 0 40px #ffd700; }
+        }
+
+        .option.correct {
+            background: #10b981;
+            border-color: #10b981;
+            animation: none;
+        }
+
+        .option.wrong {
+            background: #ef4444;
+            border-color: #ef4444;
+            animation: none;
+        }
+
+        .option.disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .prize-ladder {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .prize-level {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            background: rgba(255, 255, 255, 0.05);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .prize-level.active {
+            background: #ffd700;
+            color: #000;
+            font-weight: bold;
+        }
+
+        .prize-level.milestone {
+            border: 2px solid #10b981;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            max-width: 500px;
+            border: 3px solid #ffd700;
+        }
+
+        .modal h2 {
+            color: #ffd700;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .modal p {
+            font-size: 1.3em;
+            margin: 15px 0;
+        }
+
+        .confirmation-modal {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            border: 4px solid #ffd700;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .confirmation-modal h2 {
+            font-size: 2.5em;
+            color: #ffd700;
+            margin-bottom: 30px;
+        }
+
+        .confirmation-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .suspense-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+
+        .suspense-content {
+            text-align: center;
+        }
+
+        .suspense-text {
+            font-size: 3em;
+            color: #ffd700;
+            animation: suspensePulse 2s infinite;
+        }
+
+        @keyframes suspensePulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+
+        .dashboard {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 998;
+        }
+
+        .dashboard-content {
+            text-align: center;
+            padding: 50px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            border: 3px solid #ffd700;
+        }
+
+        .dashboard-prize {
+            font-size: 4em;
+            color: #ffd700;
+            margin: 20px 0;
+            text-shadow: 0 0 30px #ffd700;
+        }
+
+        .dashboard-progress {
+            font-size: 2em;
+            margin: 20px 0;
+        }
+
+        .scoreboard {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 30px;
+            border-radius: 15px;
+        }
+
+        .scoreboard h2 {
+            color: #ffd700;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .player-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            margin: 15px 0;
+            border-radius: 10px;
+            border: 2px solid #ffd700;
+        }
+
+        .player-card.active {
+            background: rgba(255, 215, 0, 0.3);
+            border: 3px solid #ffd700;
+        }
+
+        .player-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .player-name {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .player-prize {
+            font-size: 1.8em;
+            color: #10b981;
+        }
+
+        .player-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .stat-item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+        }
+
+        .stat-value {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffd700;
+        }
+
+        .add-player-section {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .add-player-input {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .add-player-input input {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            font-size: 1.1em;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .lifeline-used-badge {
+            display: inline-block;
+            background: rgba(239, 68, 68, 0.3);
+            padding: 2px 8px;
+            border-radius: 3px;
+            margin-left: 5px;
+            font-size: 0.8em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page 1: Setup -->
+        <div id="setupPage" class="page active">
+            <div class="header">
+                <h1>🏆 KAUN BANEGA CROREPATI 🏆</h1>
+                <p style="margin-top: 10px; font-size: 1.2em;">Python Edition - Setup</p>
+            </div>
+
+            <div class="admin-panel">
+                <h2>📋 Game Setup</h2>
+
+                <!-- Excel Upload -->
+                <div class="upload-section">
+                    <h3>📊 Upload Questions Excel File</h3>
+                    <p style="margin-bottom: 15px; font-size: 0.9em;">
+                        Excel should have columns: Question, OptionA, OptionB, OptionC, OptionD, CorrectOption, DifficultyLevel
+                    </p>
+                    <div class="file-upload" onclick="document.getElementById('excelFile').click()">
+                        <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="handleExcelUpload(this)">
+                        <div class="file-upload-label">
+                            📁 Click to Upload Excel File
+                        </div>
+                        <p id="excelStatus" style="margin-top: 10px; color: #666;"></p>
+                    </div>
+                </div>
+
+                <!-- Status Display -->
+                <div class="status-display">
+                    <h3 style="color: #ffd700; margin-bottom: 15px;">📈 Questions Status</h3>
+                    <div class="status-item">
+                        <span>Very Easy:</span>
+                        <span id="veryEasyCount">0 questions</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Easy:</span>
+                        <span id="easyCount">0 questions</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Medium:</span>
+                        <span id="mediumCount">0 questions</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Hard:</span>
+                        <span id="hardCount">0 questions</span>
+                    </div>
+                    <div class="status-item">
+                        <span>Very Hard:</span>
+                        <span id="veryHardCount">0 questions</span>
+                    </div>
+                    <div class="status-item" style="border-top: 2px solid #ffd700; margin-top: 10px; padding-top: 10px;">
+                        <span><strong>Total Questions:</strong></span>
+                        <span id="totalCount" style="color: #ffd700; font-weight: bold;">0</span>
+                    </div>
+                </div>
+
+                <!-- Settings -->
+                <div class="settings-panel">
+                    <h3 style="color: #ffd700; margin-bottom: 10px;">⚙️ Game Settings</h3>
+                    <label>Timer Duration (seconds):</label>
+                    <input type="number" id="timerSetting" value="60" min="10" max="300">
+                </div>
+
+                <!-- Music Upload Section -->
+                <div class="music-upload">
+                    <h3>🎵 Music & Sound Effects</h3>
+                    <p style="margin-bottom: 15px; font-size: 0.9em;">Upload audio files for authentic KBC experience (Optional)</p>
+                    
+                    <div class="music-item">
+                        <label>Background Music</label>
+                        <input type="file" id="bgMusic" accept="audio/*" onchange="handleMusicUpload('bg', this)">
+                        <span id="bgStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Question Appears Sound</label>
+                        <input type="file" id="questionSound" accept="audio/*" onchange="handleMusicUpload('question', this)">
+                        <span id="questionStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Suspense/Thinking Music</label>
+                        <input type="file" id="suspenseMusic" accept="audio/*" onchange="handleMusicUpload('suspense', this)">
+                        <span id="suspenseStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Correct Answer Sound</label>
+                        <input type="file" id="correctSound" accept="audio/*" onchange="handleMusicUpload('correct', this)">
+                        <span id="correctStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Wrong Answer Sound</label>
+                        <input type="file" id="wrongSound" accept="audio/*" onchange="handleMusicUpload('wrong', this)">
+                        <span id="wrongStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Lifeline Usage Sound</label>
+                        <input type="file" id="lifelineSound" accept="audio/*" onchange="handleMusicUpload('lifeline', this)">
+                        <span id="lifelineStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Lock Answer Sound</label>
+                        <input type="file" id="lockSound" accept="audio/*" onchange="handleMusicUpload('lock', this)">
+                        <span id="lockStatus"></span>
+                    </div>
+
+                    <div class="music-item">
+                        <label>Win Celebration Sound</label>
+                        <input type="file" id="winSound" accept="audio/*" onchange="handleMusicUpload('win', this)">
+                        <span id="winStatus"></span>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="goToGamePage()" style="font-size: 1.2em; padding: 15px 40px;">
+                        ➡️ GO TO GAME PAGE
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 2: Game Page -->
+        <div id="gamePage" class="page">
+            <div class="header">
+                <h1>🏆 KAUN BANEGA CROREPATI 🏆</h1>
+                <p style="margin-top: 10px; font-size: 1.2em;">Python Edition</p>
+            </div>
+
+            <!-- Add Player Section -->
+            <div class="add-player-section" id="addPlayerSection">
+                <h3 style="color: #ffd700; margin-bottom: 10px;">👤 Add Player</h3>
+                <div class="add-player-input">
+                    <input type="text" id="playerNameInput" placeholder="Enter player name" maxlength="30">
+                    <button class="btn btn-primary" onclick="addPlayer()">Add Player</button>
+                </div>
+                <p style="margin-top: 10px; font-size: 0.9em;">Players added: <span id="playersAddedCount">0</span></p>
+            </div>
+
+            <!-- Start Game Button -->
+            <div style="text-align: center; margin-bottom: 20px;" id="startGameSection">
+                <button class="btn btn-success" onclick="startPlayerGame()" style="font-size: 1.2em; padding: 15px 40px;">
+                    🎮 START GAME
+                </button>
+                <button class="btn btn-primary" onclick="goToScoreboard()" style="font-size: 1.2em; padding: 15px 40px; margin-left: 10px;">
+                    📊 VIEW SCOREBOARD
+                </button>
+            </div>
+
+            <!-- Game Area -->
+            <div id="gameArea" class="game-area">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <h2 style="color: #ffd700;">Playing: <span id="currentPlayerName"></span></h2>
+                </div>
+
+                <div class="game-header">
+                    <div>
+                        <div class="prize-money" id="currentPrize">₹0</div>
+                        <div style="font-size: 0.8em; margin-top: 5px;">Question <span id="questionNumber">1</span> of 15</div>
+                    </div>
+                    
+                    <div class="timer" id="timer">60</div>
+                    
+                    <div class="lifelines">
+                        <div class="lifeline" onclick="useFiftyFifty()" id="fiftyFifty">
+                            <div style="font-size: 1.5em;">50:50</div>
+                        </div>
+                        <div class="lifeline" onclick="useFlipQuestion()" id="flipQuestion">
+                            <div style="font-size: 1.5em;">🔄</div>
+                            <div style="font-size: 0.8em;">Flip</div>
+                        </div>
+                        <div class="lifeline" onclick="usePhoneFriend()" id="phoneFriend">
+                            <div style="font-size: 1.5em;">📞</div>
+                            <div style="font-size: 0.8em;">Phone</div>
+                        </div>
+                        <div class="lifeline" onclick="useExpert()" id="expert">
+                            <div style="font-size: 1.5em;">🎓</div>
+                            <div style="font-size: 0.8em;">Expert</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 20px;">
+                    <div>
+                        <div class="question-container">
+                            <div class="question" id="question">Question will appear here</div>
+                            <div class="options" id="options"></div>
+                        </div>
+                        <div style="text-align: center;">
+                            <button class="btn btn-danger" onclick="quitGame()">QUIT GAME</button>
+                            <button class="btn btn-primary" onclick="goToScoreboard()" style="margin-left: 10px;">VIEW SCOREBOARD</button>
+                        </div>
+                    </div>
+
+                    <div class="prize-ladder" id="prizeLadder"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page 3: Scoreboard -->
+        <div id="scoreboardPage" class="page">
+            <div class="header">
+                <h1>🏆 SCOREBOARD 🏆</h1>
+            </div>
+
+            <div class="scoreboard" id="scoreboard">
+                <h2>Player Rankings</h2>
+                <div id="playersList"></div>
+                
+                <div class="nav-buttons">
+                    <button class="btn btn-primary" onclick="goToGamePage()" style="font-size: 1.1em; padding: 12px 30px;">
+                        ⬅️ BACK TO GAME
+                    </button>
+                    <button class="btn btn-success" onclick="startNextPlayer()" style="font-size: 1.1em; padding: 12px 30px;">
+                        ▶️ START NEXT PLAYER
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal -->
+        <div id="confirmationModal" class="modal">
+            <div class="confirmation-modal">
+                <h2 id="confirmTitle">Lock Kiya Jaye?</h2>
+                <p style="font-size: 1.8em; margin: 30px 0;" id="confirmText">Option A</p>
+                <div class="confirmation-buttons">
+                    <button class="btn btn-success" onclick="confirmAction(true)" style="padding: 15px 40px; font-size: 1.2em;">
+                        ✓ YES
+                    </button>
+                    <button class="btn btn-danger" onclick="confirmAction(false)" style="padding: 15px 40px; font-size: 1.2em;">
+                        ✗ NO
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Suspense Overlay -->
+        <div id="suspenseOverlay" class="suspense-overlay">
+            <div class="suspense-content">
+                <div class="suspense-text">⏳</div>
+                <p style="font-size: 2em; color: white; margin-top: 20px;">Checking your answer...</p>
+            </div>
+        </div>
+
+        <!-- Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <div class="dashboard-content">
+                <h2 style="color: #ffd700; font-size: 2.5em;">🎉 Excellent! 🎉</h2>
+                <p class="dashboard-progress" id="dashProgress">Question 1 Complete</p>
+                <p style="font-size: 1.5em; margin: 20px 0;">You've won:</p>
+                <div class="dashboard-prize" id="dashPrize">₹1,000</div>
+                <button class="btn btn-primary" onclick="nextQuestion()" style="padding: 15px 40px; font-size: 1.2em; margin-top: 20px;">
+                    CONTINUE →
+                </button>
+            </div>
+        </div>
+
+        <!-- Modal -->
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modalTitle">Title</h2>
+                <div id="modalBody"></div>
+                <button class="btn btn-primary" onclick="closeModal()" style="margin-top: 20px;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Game State
+        let allQuestions = {
+            'Very Easy': [],
+            'Easy': [],
+            'Medium': [],
+            'Hard': [],
+            'Very Hard': []
+        };
+        let usedQuestions = [];
+        let currentGameQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentPrize = 0;
+        let timer;
+        let timerValue;
+        let timerDuration = 60;
+        let selectedAnswer = null;
+        let lifelines = {
+            fiftyFifty: true,
+            flipQuestion: true,
+            phoneFriend: true,
+            expert: true
+        };
+        let currentAction = null;
+        let players = [];
+        let currentPlayerIndex = -1;
+
+        // Audio Objects
+        let audioFiles = {
+            bg: null,
+            question: null,
+            suspense: null,
+            correct: null,
+            wrong: null,
+            lifeline: null,
+            lock: null,
+            win: null
+        };
+
+        const prizeArray = [
+            { level: 1, amount: '₹1,000', value: 1000, difficulty: 'Very Easy' },
+            { level: 2, amount: '₹2,000', value: 2000, difficulty: 'Very Easy' },
+            { level: 3, amount: '₹3,000', value: 3000, difficulty: 'Very Easy' },
+            { level: 4, amount: '₹5,000', value: 5000, difficulty: 'Easy' },
+            { level: 5, amount: '₹10,000', value: 10000, difficulty: 'Easy', milestone: true },
+            { level: 6, amount: '₹20,000', value: 20000, difficulty: 'Easy' },
+            { level: 7, amount: '₹40,000', value: 40000, difficulty: 'Medium' },
+            { level: 8, amount: '₹80,000', value: 80000, difficulty: 'Medium' },
+            { level: 9, amount: '₹1,60,000', value: 160000, difficulty: 'Medium' },
+            { level: 10, amount: '₹3,20,000', value: 320000, difficulty: 'Hard', milestone: true },
+            { level: 11, amount: '₹6,40,000', value: 640000, difficulty: 'Hard' },
+            { level: 12, amount: '₹12,50,000', value: 1250000, difficulty: 'Hard' },
+            { level: 13, amount: '₹25,00,000', value: 2500000, difficulty: 'Very Hard' },
+            { level: 14, amount: '₹50,00,000', value: 5000000, difficulty: 'Very Hard' },
+            { level: 15, amount: '₹1 Crore', value: 10000000, difficulty: 'Very Hard' }
+        ];
+
+        // Handle Excel Upload
+        function handleExcelUpload(input) {
+            const file = input.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+
+                    console.log('Excel data loaded:', jsonData.length, 'rows');
+                    console.log('Sample row:', jsonData[0]);
+
+                    // Reset questions
+                    allQuestions = {
+                        'Very Easy': [],
+                        'Easy': [],
+                        'Medium': [],
+                        'Hard': [],
+                        'Very Hard': []
+                    };
+
+                    let successCount = 0;
+                    let errorCount = 0;
+
+                    jsonData.forEach((row, index) => {
+                        // Try different possible column name variations
+                        const questionText = row.Question || row.question || row.QUESTION || row['Question '] || '';
+                        const optionA = row.OptionA || row.optionA || row.OPTIONA || row['Option A'] || row['OptionA '] || '';
+                        const optionB = row.OptionB || row.optionB || row.OPTIONB || row['Option B'] || row['OptionB '] || '';
+                        const optionC = row.OptionC || row.optionC || row.OPTIONC || row['Option C'] || row['OptionC '] || '';
+                        const optionD = row.OptionD || row.optionD || row.OPTIOND || row['Option D'] || row['OptionD '] || '';
+                        const correctOpt = row.CorrectOption || row.correctOption || row.CORRECTOPTION || row['Correct Option'] || row['CorrectOption '] || '';
+                        const diffLevel = row.DifficultyLevel || row.difficultyLevel || row.DIFFICULTYLEVEL || row['Difficulty Level'] || row['DifficultyLevel '] || row.Difficulty || row.difficulty || '';
+
+                        // Debug log for first few rows
+                        if (index < 3) {
+                            console.log('Row', index + 1, 'parsed:', {
+                                question: questionText,
+                                optionA: optionA,
+                                optionB: optionB,
+                                optionC: optionC,
+                                optionD: optionD,
+                                correct: correctOpt,
+                                difficulty: diffLevel
+                            });
+                        }
+
+                        if (!questionText || !optionA || !optionB || !optionC || !optionD || !correctOpt || !diffLevel) {
+                            console.log('Skipping row', index + 1, '- Missing data. Raw row:', row);
+                            errorCount++;
+                            return;
+                        }
+
+                        const question = {
+                            question: questionText.toString().trim(),
+                            options: {
+                                A: optionA.toString().trim(),
+                                B: optionB.toString().trim(),
+                                C: optionC.toString().trim(),
+                                D: optionD.toString().trim()
+                            },
+                            correct: correctOpt.toString().trim().toUpperCase(),
+                            difficulty: diffLevel.toString().trim()
+                        };
+
+                        // Check if difficulty level exists
+                        if (allQuestions[question.difficulty]) {
+                            allQuestions[question.difficulty].push(question);
+                            successCount++;
+                        } else {
+                            console.log('Unknown difficulty level:', question.difficulty, 'in row', index + 1);
+                            console.log('Available difficulty levels:', Object.keys(allQuestions));
+                            errorCount++;
+                        }
+                    });
+
+                    updateQuestionCounts();
+                    
+                    let statusMsg = `<span style="color: #10b981; font-weight: bold;">✓ ${successCount} questions loaded successfully!</span>`;
+                    if (errorCount > 0) {
+                        statusMsg += `<br><span style="color: #ff6b6b; font-size: 0.9em;">${errorCount} rows skipped due to missing/invalid data</span>`;
+                    }
+                    document.getElementById('excelStatus').innerHTML = statusMsg;
+
+                    if (successCount === 0) {
+                        alert('No valid questions found! Please check:\n\n1. Column names must be: Question, OptionA, OptionB, OptionC, OptionD, CorrectOption, DifficultyLevel\n2. DifficultyLevel must be: Very Easy, Easy, Medium, Hard, or Very Hard\n3. All fields must have values\n\nCheck browser console for details.');
+                    }
+                } catch (error) {
+                    alert('Error reading Excel file: ' + error.message + '\n\nPlease check the file format.');
+                    console.error('Excel parsing error:', error);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // Update Question Counts
+        function updateQuestionCounts() {
+            document.getElementById('veryEasyCount').textContent = allQuestions['Very Easy'].length + ' questions';
+            document.getElementById('easyCount').textContent = allQuestions['Easy'].length + ' questions';
+            document.getElementById('mediumCount').textContent = allQuestions['Medium'].length + ' questions';
+            document.getElementById('hardCount').textContent = allQuestions['Hard'].length + ' questions';
+            document.getElementById('veryHardCount').textContent = allQuestions['Very Hard'].length + ' questions';
+            
+            const total = Object.values(allQuestions).reduce((sum, arr) => sum + arr.length, 0);
+            document.getElementById('totalCount').textContent = total;
+        }
+
+        // Handle Music Upload
+        function handleMusicUpload(type, input) {
+            const file = input.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    audioFiles[type] = new Audio(e.target.result);
+                    if (type === 'bg') {
+                        audioFiles[type].loop = true;
+                        audioFiles[type].volume = 0.3;
+                    }
+                    document.getElementById(type + 'Status').innerHTML = '<span class="music-status">✓ Uploaded</span>';
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Play Audio
+        function playAudio(type) {
+            if (audioFiles[type]) {
+                audioFiles[type].currentTime = 0;
+                audioFiles[type].play().catch(e => console.log('Audio play failed:', e));
+            }
+        }
+
+        // Stop Audio
+        function stopAudio(type) {
+            if (audioFiles[type]) {
+                audioFiles[type].pause();
+                audioFiles[type].currentTime = 0;
+            }
+        }
+
+        // Page Navigation
+        function goToGamePage() {
+            const total = Object.values(allQuestions).reduce((sum, arr) => sum + arr.length, 0);
+            if (total < 15) {
+                alert('Please upload an Excel file with at least 15 questions (3 from each difficulty level)!');
+                return;
+            }
+
+            document.getElementById('setupPage').classList.remove('active');
+            document.getElementById('gamePage').classList.add('active');
+            updateScoreboard();
+        }
+
+        function goToScoreboard() {
+            document.getElementById('gamePage').classList.remove('active');
+            document.getElementById('scoreboardPage').classList.add('active');
+            updateScoreboard();
+        }
+
+        function goBackToGame() {
+            document.getElementById('scoreboardPage').classList.remove('active');
+            document.getElementById('gamePage').classList.add('active');
+        }
+
+        // Add Player
+        function addPlayer() {
+            const nameInput = document.getElementById('playerNameInput');
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter a player name!');
+                return;
+            }
+
+            if (players.length >= 4) {
+                alert('Maximum 4 players allowed!');
+                return;
+            }
+
+            players.push({
+                name: name,
+                prize: 0,
+                questionNumber: 0,
+                lifelinesUsed: [],
+                status: 'waiting',
+                completed: false
+            });
+
+            nameInput.value = '';
+            document.getElementById('playersAddedCount').textContent = players.length;
+            updateScoreboard();
+            alert('Player "' + name + '" added successfully!');
+        }
+
+        // Start Next Player
+        function startNextPlayer() {
+            const nextPlayer = players.find(p => !p.completed);
+            if (!nextPlayer) {
+                alert('All players have completed the game!');
+                return;
+            }
+
+            goBackToGame();
+            startPlayerGame();
+        }
+
+        // Start Player Game
+        function startPlayerGame() {
+            if (players.length === 0) {
+                alert('Please add at least one player first!');
+                return;
+            }
+
+            // Find next player who hasn't completed
+            currentPlayerIndex = players.findIndex(p => !p.completed);
+            if (currentPlayerIndex === -1) {
+                alert('All players have completed the game! Check the scoreboard.');
+                goToScoreboard();
+                return;
+            }
+
+            const currentPlayer = players[currentPlayerIndex];
+            timerDuration = parseInt(document.getElementById('timerSetting').value);
+
+            // Generate questions for this player
+            currentGameQuestions = generateQuestions();
+            if (!currentGameQuestions) {
+                alert('Not enough unique questions available for this player!');
+                return;
+            }
+
+            currentQuestionIndex = 0;
+            currentPrize = 0;
+            selectedAnswer = null;
+            lifelines = {
+                fiftyFifty: true,
+                flipQuestion: true,
+                phoneFriend: true,
+                expert: true
+            };
+
+            currentPlayer.status = 'playing';
+            currentPlayer.lifelinesUsed = [];
+
+            document.getElementById('addPlayerSection').style.display = 'none';
+            document.getElementById('startGameSection').style.display = 'none';
+            document.getElementById('gameArea').style.display = 'block';
+            document.getElementById('currentPlayerName').textContent = currentPlayer.name;
+
+            playAudio('bg');
+            renderPrizeLadder();
+            loadQuestion();
+            updateScoreboard();
+        }
+
+        // Generate Questions
+        function generateQuestions() {
+            const questions = [];
+            const difficulties = ['Very Easy', 'Easy', 'Medium', 'Hard', 'Very Hard'];
+            
+            for (let difficulty of difficulties) {
+                const available = allQuestions[difficulty].filter(q => !usedQuestions.includes(q));
+                
+                if (available.length < 3) {
+                    alert('Not enough ' + difficulty + ' questions available!');
+                    return null;
+                }
+
+                // Pick 3 random questions from this difficulty
+                const selected = [];
+                const tempAvailable = [...available];
+                for (let i = 0; i < 3; i++) {
+                    const randomIndex = Math.floor(Math.random() * tempAvailable.length);
+                    const question = tempAvailable[randomIndex];
+                    selected.push(question);
+                    usedQuestions.push(question);
+                    tempAvailable.splice(randomIndex, 1);
+                }
+
+                questions.push(...selected);
+            }
+
+            return questions;
+        }
+
+        // Render Prize Ladder
+        function renderPrizeLadder() {
+            const ladder = document.getElementById('prizeLadder');
+            ladder.innerHTML = '<h3 style="color: #ffd700; margin-bottom: 15px; text-align: center;">Prize Ladder</h3>';
+            
+            for (let i = prizeArray.length - 1; i >= 0; i--) {
+                const level = document.createElement('div');
+                level.className = 'prize-level' + (prizeArray[i].milestone ? ' milestone' : '');
+                level.id = 'prize-' + prizeArray[i].level;
+                level.innerHTML = `
+                    <span>${prizeArray[i].level}</span>
+                    <span>${prizeArray[i].amount}</span>
+                `;
+                ladder.appendChild(level);
+            }
+        }
+
+        // Load Question
+        function loadQuestion() {
+            if (currentQuestionIndex >= currentGameQuestions.length) {
+                endGame(true);
+                return;
+            }
+
+            playAudio('question');
+
+            const q = currentGameQuestions[currentQuestionIndex];
+            const prizeLevel = prizeArray[currentQuestionIndex];
+
+            console.log('Loading question:', q);
+
+            document.getElementById('questionNumber').textContent = currentQuestionIndex + 1;
+            document.getElementById('currentPrize').textContent = prizeLevel.amount;
+            document.getElementById('question').textContent = q.question || 'Question not available';
+
+            document.querySelectorAll('.prize-level').forEach(el => el.classList.remove('active'));
+            document.getElementById('prize-' + prizeLevel.level).classList.add('active');
+
+            const optionsContainer = document.getElementById('options');
+            optionsContainer.innerHTML = '';
+            
+            Object.keys(q.options).forEach(key => {
+                const optionText = q.options[key];
+                console.log('Option', key, ':', optionText);
+                
+                const option = document.createElement('div');
+                option.className = 'option';
+                option.innerHTML = `<strong>${key}:</strong> ${optionText || '[Empty Option]'}`;
+                option.onclick = () => selectAnswer(key);
+                optionsContainer.appendChild(option);
+            });
+
+            document.getElementById('fiftyFifty').className = 'lifeline' + (!lifelines.fiftyFifty ? ' used' : '');
+            document.getElementById('flipQuestion').className = 'lifeline' + (!lifelines.flipQuestion ? ' used' : '');
+            document.getElementById('phoneFriend').className = 'lifeline' + (!lifelines.phoneFriend ? ' used' : '');
+            document.getElementById('expert').className = 'lifeline' + (!lifelines.expert ? ' used' : '');
+
+            startTimer();
+        }
+
+        // Start Timer
+        function startTimer() {
+            clearInterval(timer);
+            timerValue = timerDuration;
+            document.getElementById('timer').textContent = timerValue;
+            document.getElementById('timer').classList.remove('warning');
+
+            timer = setInterval(() => {
+                timerValue--;
+                document.getElementById('timer').textContent = timerValue;
+
+                if (timerValue <= 10) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+
+                if (timerValue <= 0) {
+                    clearInterval(timer);
+                    timeUp();
+                }
+            }, 1000);
+        }
+
+        // Time Up
+        function timeUp() {
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => opt.style.pointerEvents = 'none');
+            
+            stopAudio('bg');
+            playAudio('wrong');
+            
+            showModal('Time\'s Up! ⏰', 'Unfortunately, you ran out of time. Your final prize: <strong>' + 
+                      (currentQuestionIndex > 0 ? prizeArray[currentQuestionIndex - 1].amount : '₹0') + '</strong>');
+            
+            setTimeout(() => {
+                closeModal();
+                finishPlayerGame(false);
+            }, 3000);
+        }
+
+        // Select Answer
+        function selectAnswer(selected) {
+            if (selectedAnswer) return;
+
+            selectedAnswer = selected;
+            
+            const options = document.querySelectorAll('.option');
+            options.forEach(opt => {
+                const optionKey = opt.innerHTML.charAt(8);
+                if (optionKey === selected) {
+                    opt.classList.add('selected');
+                }
+                opt.style.pointerEvents = 'none';
+            });
+
+            clearInterval(timer);
+
+            currentAction = 'answer';
+            document.getElementById('confirmTitle').textContent = 'Lock Kiya Jaye?';
+            document.getElementById('confirmText').textContent = 'Option ' + selected;
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+
+        // Confirm Action
+        function confirmAction(confirmed) {
+            document.getElementById('confirmationModal').style.display = 'none';
+
+            if (currentAction === 'answer') {
+                if (!confirmed) {
+                    const options = document.querySelectorAll('.option');
+                    options.forEach(opt => {
+                        opt.classList.remove('selected');
+                        opt.style.pointerEvents = 'auto';
+                    });
+                    selectedAnswer = null;
+                    startTimer();
+                    return;
+                }
+
+                playAudio('lock');
+                setTimeout(() => showSuspense(), 1000);
+            } else if (currentAction === 'fiftyFifty') {
+                if (confirmed) {
+                    executeFiftyFifty();
+                }
+                currentAction = null;
+            } else if (currentAction === 'flipQuestion') {
+                if (confirmed) {
+                    executeFlipQuestion();
+                }
+                currentAction = null;
+            }
+        }
+
+        // Show Suspense
+        function showSuspense() {
+            document.getElementById('suspenseOverlay').style.display = 'flex';
+            playAudio('suspense');
+
+            setTimeout(() => {
+                document.getElementById('suspenseOverlay').style.display = 'none';
+                stopAudio('suspense');
+                revealAnswer();
+            }, 3000);
+        }
+
+        // Reveal Answer
+        function revealAnswer() {
+            const q = currentGameQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            options.forEach(opt => {
+                const optionKey = opt.innerHTML.charAt(8);
+                opt.classList.remove('selected');
+                
+                if (optionKey === q.correct) {
+                    opt.classList.add('correct');
+                }
+                if (optionKey === selectedAnswer && selectedAnswer !== q.correct) {
+                    opt.classList.add('wrong');
+                }
+            });
+
+            if (selectedAnswer === q.correct) {
+                playAudio('correct');
+                currentPrize = prizeArray[currentQuestionIndex].value;
+                players[currentPlayerIndex].prize = currentPrize;
+                players[currentPlayerIndex].questionNumber = currentQuestionIndex + 1;
+                
+                setTimeout(() => showDashboard(), 2000);
+            } else {
+                playAudio('wrong');
+                setTimeout(() => endGame(false), 2000);
+            }
+        }
+
+        // Show Dashboard
+        function showDashboard() {
+            const prizeLevel = prizeArray[currentQuestionIndex];
+            document.getElementById('dashProgress').textContent = `Question ${currentQuestionIndex + 1} Complete`;
+            document.getElementById('dashPrize').textContent = prizeLevel.amount;
+            document.getElementById('dashboard').style.display = 'flex';
+        }
+
+        // Next Question
+        function nextQuestion() {
+            document.getElementById('dashboard').style.display = 'none';
+            currentQuestionIndex++;
+            selectedAnswer = null;
+            
+            if (currentQuestionIndex >= currentGameQuestions.length) {
+                endGame(true);
+            } else {
+                loadQuestion();
+            }
+        }
+
+        // Use 50:50
+        function useFiftyFifty() {
+            if (!lifelines.fiftyFifty) return;
+            
+            clearInterval(timer);
+            currentAction = 'fiftyFifty';
+            document.getElementById('confirmTitle').textContent = 'Use 50:50 Lifeline?';
+            document.getElementById('confirmText').textContent = 'This will remove 2 wrong answers';
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+
+        function executeFiftyFifty() {
+            lifelines.fiftyFifty = false;
+            playAudio('lifeline');
+            players[currentPlayerIndex].lifelinesUsed.push('50:50');
+            
+            const q = currentGameQuestions[currentQuestionIndex];
+            const options = document.querySelectorAll('.option');
+            
+            let wrongOptions = [];
+            options.forEach(opt => {
+                const optionKey = opt.innerHTML.charAt(8);
+                if (optionKey !== q.correct) {
+                    wrongOptions.push(opt);
+                }
+            });
+
+            for (let i = 0; i < 2; i++) {
+                const randomIndex = Math.floor(Math.random() * wrongOptions.length);
+                wrongOptions[randomIndex].classList.add('disabled');
+                wrongOptions[randomIndex].style.pointerEvents = 'none';
+                wrongOptions.splice(randomIndex, 1);
+            }
+
+            document.getElementById('fiftyFifty').classList.add('used');
+            startTimer();
+        }
+
+        // Use Flip Question
+        function useFlipQuestion() {
+            if (!lifelines.flipQuestion) return;
+            
+            clearInterval(timer);
+            currentAction = 'flipQuestion';
+            document.getElementById('confirmTitle').textContent = 'Flip the Question?';
+            document.getElementById('confirmText').textContent = 'Replace with another question from same difficulty';
+            document.getElementById('confirmationModal').style.display = 'flex';
+        }
+
+        function executeFlipQuestion() {
+            lifelines.flipQuestion = false;
+            playAudio('lifeline');
+            players[currentPlayerIndex].lifelinesUsed.push('Flip');
+
+            const currentDifficulty = prizeArray[currentQuestionIndex].difficulty;
+            const available = allQuestions[currentDifficulty].filter(q => !usedQuestions.includes(q));
+
+            if (available.length === 0) {
+                alert('No more questions available in this difficulty level!');
+                document.getElementById('flipQuestion').classList.add('used');
+                startTimer();
+                return;
+            }
+
+            const randomIndex = Math.floor(Math.random() * available.length);
+            const newQuestion = available[randomIndex];
+            usedQuestions.push(newQuestion);
+            currentGameQuestions[currentQuestionIndex] = newQuestion;
+
+            document.getElementById('flipQuestion').classList.add('used');
+            loadQuestion();
+        }
+
+        // Use Phone a Friend
+        function usePhoneFriend() {
+            if (!lifelines.phoneFriend) return;
+            
+            lifelines.phoneFriend = false;
+            playAudio('lifeline');
+            players[currentPlayerIndex].lifelinesUsed.push('Phone');
+            document.getElementById('phoneFriend').classList.add('used');
+            clearInterval(timer);
+
+            showModal('📞 Phone a Friend', 
+                `<p style="font-size: 1.5em;">Call your friend now!</p>
+                <p style="margin-top: 20px;">Timer paused - Click OK when done</p>`);
+        }
+
+        // Use Expert
+        function useExpert() {
+            if (!lifelines.expert) return;
+            
+            lifelines.expert = false;
+            playAudio('lifeline');
+            players[currentPlayerIndex].lifelinesUsed.push('Expert');
+            document.getElementById('expert').classList.add('used');
+            clearInterval(timer);
+
+            showModal('🎓 Ask the Expert', 
+                `<p style="font-size: 1.5em;">Consult with the expert now!</p>
+                <p style="margin-top: 20px;">Timer paused - Click OK when done</p>`);
+        }
+
+        // End Game
+        function endGame(won) {
+            clearInterval(timer);
+            stopAudio('bg');
+            
+            if (won) {
+                playAudio('win');
+                showModal('🎉 CONGRATULATIONS! 🎉', 
+                    `<p style="font-size: 1.5em;">You've won the grand prize!</p>
+                    <p style="font-size: 2em; color: #ffd700; margin: 20px 0;">₹1 CRORE!</p>
+                    <p>You are a Python Champion! 🏆</p>`);
+            } else {
+                const safeHaven = getSafeHaven();
+                showModal('😔 Wrong Answer!', 
+                    `<p>The correct answer was: <strong>${currentGameQuestions[currentQuestionIndex].correct}</strong></p>
+                    <p style="margin-top: 20px;">Your final prize:</p>
+                    <p style="font-size: 1.8em; color: #ffd700; margin: 10px 0;">${safeHaven.amount}</p>`);
+            }
+
+            setTimeout(() => {
+                closeModal();
+                finishPlayerGame(won);
+            }, 5000);
+        }
+
+        // Get Safe Haven Prize
+        function getSafeHaven() {
+            if (currentQuestionIndex <= 4) {
+                return { amount: '₹0', value: 0 };
+            } else if (currentQuestionIndex <= 9) {
+                return prizeArray[4];
+            } else {
+                return prizeArray[9];
+            }
+        }
+
+        // Finish Player Game
+        function finishPlayerGame(won) {
+            const player = players[currentPlayerIndex];
+            player.completed = true;
+            player.status = 'completed';
+            
+            if (!won) {
+                const safeHaven = getSafeHaven();
+                player.prize = safeHaven.value;
+            }
+
+            document.getElementById('gameArea').style.display = 'none';
+            document.getElementById('addPlayerSection').style.display = 'block';
+            document.getElementById('startGameSection').style.display = 'block';
+            
+            updateScoreboard();
+            goToScoreboard();
+        }
+
+        // Quit Game
+        function quitGame() {
+            if (confirm('Are you sure you want to quit? You will take home your current prize.')) {
+                clearInterval(timer);
+                stopAudio('bg');
+                const prize = currentQuestionIndex > 0 ? prizeArray[currentQuestionIndex - 1] : { amount: '₹0', value: 0 };
+                
+                showModal('👋 Game Ended', 
+                    `<p>You chose to quit!</p>
+                    <p style="margin-top: 20px;">You're taking home:</p>
+                    <p style="font-size: 1.8em; color: #ffd700; margin: 10px 0;">${prize.amount}</p>
+                    <p>Well played! 🎮</p>`);
+                
+                players[currentPlayerIndex].prize = prize.value;
+                
+                setTimeout(() => {
+                    closeModal();
+                    finishPlayerGame(false);
+                }, 3000);
+            }
+        }
+
+        // Update Scoreboard
+        function updateScoreboard() {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = '';
+
+            if (players.length === 0) {
+                playersList.innerHTML = '<p style="text-align: center; padding: 40px; font-size: 1.2em;">No players added yet</p>';
+                return;
+            }
+
+            // Sort players by prize (descending)
+            const sortedPlayers = [...players].sort((a, b) => b.prize - a.prize);
+
+            sortedPlayers.forEach((player, index) => {
+                const card = document.createElement('div');
+                card.className = 'player-card' + (player.status === 'playing' ? ' active' : '');
+                
+                let statusIcon = '';
+                if (player.status === 'playing') statusIcon = '▶️ Playing';
+                else if (player.status === 'completed') statusIcon = '✓ Completed';
+                else statusIcon = '⏳ Waiting';
+
+                const lifelinesHTML = player.lifelinesUsed.length > 0 
+                    ? player.lifelinesUsed.map(l => `<span class="lifeline-used-badge">${l}</span>`).join(' ')
+                    : '<span style="opacity: 0.5;">None used</span>';
+
+                card.innerHTML = `
+                    <div class="player-header">
+                        <div>
+                            <div class="player-name">${index + 1}. ${player.name}</div>
+                            <div style="font-size: 0.9em; margin-top: 5px; opacity: 0.8;">${statusIcon}</div>
+                        </div>
+                        <div class="player-prize">₹${formatPrize(player.prize)}</div>
+                    </div>
+                    <div class="player-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">Questions</div>
+                            <div class="stat-value">${player.questionNumber}/15</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Lifelines Used</div>
+                            <div style="font-size: 0.9em; margin-top: 5px;">${lifelinesHTML}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Status</div>
+                            <div class="stat-value" style="font-size: 0.9em;">${player.status}</div>
+                        </div>
+                    </div>
+                `;
+                playersList.appendChild(card);
+            });
+        }
+
+        // Format Prize
+        function formatPrize(value) {
+            if (value >= 10000000) {
+                return (value / 10000000).toFixed(2) + ' Cr';
+            } else if (value >= 100000) {
+                return (value / 100000).toFixed(2) + ' L';
+            } else if (value >= 1000) {
+                return (value / 1000).toFixed(1) + ' K';
+            }
+            return value.toString();
+        }
+
+        // Modal Functions
+        function showModal(title, body) {
+            document.getElementById('modalTitle').innerHTML = title;
+            document.getElementById('modalBody').innerHTML = body;
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+            if (timerValue > 0 && currentPlayerIndex >= 0) {
+                startTimer();
+            }
+        }
+
+        // Initialize
+        updateQuestionCounts();
+    </script>
+</body>
+</html>
